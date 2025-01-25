@@ -1,4 +1,4 @@
-# Spotify Web AI DJ - create the perfect mix of music using an agentic natural voice interface to talk to the Spotify API
+# Spotify Web AI DJ - create the perfect mix of music using an agentic natural voice interface to talk to the Spotify API powered by Google Gemma 2 running entirely client side
 
 A Web AI Agent running entirely client side in browser, that's capable of generating a spotify playlist using Google's Gemma 2 (2B) model in JavaScript via WebGPU thanks to the MediaPipe Web LLM library, combined with some extra function calling logic to enable advanced user experiences and get the job done requested by the user.
 
