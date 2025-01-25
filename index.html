@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- 
+      This is an HTML comment
+      You can write text in a comment and the content won't be visible in the page
+    -->
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="https://glitch.com/favicon.ico" />
+
+    <!--
+      This is the page head - it contains info the browser uses
+      Like the title, which appears on the browser tab but not inside the page
+      Further down you'll see the content that displays in the page
+    -->
+    <title>Web AI DJ for Spotify</title>
+
+    <!-- The website stylesheet -->
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <audio id="player" controls autoplay>
+      <source src="data:audio/mpeg;base64,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AA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAGkAAAAIAAANIAAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+    <header>
+      <div id="embed-iframe"></div>
+      <h1>Web AI Spotify DJ</h1>
+      <svg id="talkToAgent" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M680-560q-33 0-56.5-23T600-640v-160q0-34 23.5-57t56.5-23q34 0 57 23t23 57v160q0 34-23 57t-57 23ZM200-80q-33 0-56.5-23.5T120-160v-640q0-33 23.5-56.5T200-880h320v80H200v640h440v-80h80v80q0 33-23.5 56.5T640-80H200Zm80-160v-80h280v80H280Zm0-120v-80h200v80H280Zm440 40h-80v-104q-77-14-128.5-74.5T460-640h80q0 58 41 99t99 41q59 0 99.5-41t40.5-99h80q0 81-51 141.5T720-424v104Z"/></svg>
+      <div id="searchResults"></div>
+    </header>
+
+    <section>
+      <h2>How to use this demo?</h2>
+      <p>Use the circular Web AI Agent microphone button in the center above in a push to talk style. That means when you click on the button and hold it will listen to your voice, and when you let go, it stops listening. Think what you want to say before you push the button so you speak fluently for best results. Let go when you have finished talking!</p>
+      <p>For example try asking something like: "Make a playlist for coding or deep work" or "Create a playist for 80s music"</p>
+      <h3>To play full length tracks you must be a Spotify member and generate a custom Client ID and Client Secret and authenticate using the side panel on the right of the demo. Otherwise you will hear previews only.</h3>
+      
+      <h2>Where can I learn more about Web AI?</h2>
+      <p> Glad you asked - check out <a href="https://goo.gle/Learn-WebAI" target="_blank">this YouTube course</a> that goes from zero to hero!</p>
+    </section>
+
+    <footer>
+      <p>Created by <a href="https://www.linkedin.com/in/WebAI" target="_blank">Jason Mayes</a>, Web AI Lead, Google, 2025.</p>
+      <p>Note: This is not an official Google product. This is a demonstration of how Web AI Agents could be applied in the future.</p>
+    </footer>
+
+    <div id="sidePanel" class="animate__animated animate__bounceInRight">
+      <h2>Spotify Auth for API</h2>
+      <p>Make a <a href="https://developer.spotify.com/dashboard" target="_blank">new app on Spotify developer</a> and then be sure to set redirect URL to be:</p>
+      <p>https://spotify-web-ai-agent-dj.glitch.me/index.html</p>
+      <p>Then locate and enter your Client ID and Client Secret below for your app and click auth - you will just need to do this once</p>
+      <div id="spotify">
+        <input type="password" id="clientId" placeholder="Client ID">
+        <input type="password" id="clientSecret" placeholder="Client Secret">
+        <input id="authBtn" type="button" value="Request Authorization">
+        <select id="devices">
+        </select>
+      </div>
+      <h2>Agent configuration</h2>
+      <h3>HCI Persona</h3>
+<textarea id="hciPersona">Imagine you are a cool friendly DJ who knows everything there is to know about music working for Spotify or YouTube music. Your task is to generate a JSON object in the following format:
+
+```json
+{
+"introduction": "Your initial response to the user - be friendly but keep it short no more than 120 characters - dont use the words \"up next\" in this intro and dont mention any artist names",
+"artists": [
+  {
+    "artist": "artist name 1 - do NOT mention any songs in the artist name",
+    "justification": "Up next is \"arist name 1\" because... say why you chose this artist for the user but keep under 100 characters"
+  },
+  {
+    "artist": "artist name 2",
+    "justification": "Moving to our next pick is \"arist name 2\" because..."
+  },
+  {
+    "artist": "artist name 3",
+    "justification": "Finally our last pick is \"arist name 3\" because...r"
+  }
+]
+}
+```
+Using this JSON format recommend what new music artists they should listen to next based on the user's conversation text. Be sure to use a lead in for the justification such as "up next" or "moving on". Use lead ins like "To kick this off" or "First up" only for the first artist only. Use "Finally" as the lead in for the last artist only.
+
+By reading the user's conversation text, fill out the JSON object and respond with it. Please ensure that the JSON object adheres to this structure and includes the specified fields. Do not include any other fields or data. Produce at least 5 artists in your response.
+</textarea>
+      <h3>Simulate chat</h3>
+      <textarea id="chat">Recently I've been listening to psy trance and also energetic hacker beats electronic music for when I am coding.</textarea>
+      <button id="chatBtn">Send</button>
+      <button id="eraseMemorytBtn">Clear Memory</button>
+    </div>
+
+    <div id="nerdyRenderPanel">
+      <h2>Agent thinking output</h2>
+      <p id="sidePanelInterface">Agent thinking for the curious folk will show here</p>
+      <h2>How does this work?</h2>
+      <p>This demo, created by Jason Mayes at Google, uses Web AI large language models to power this experience to provide Agent like behaviours. That means the AI model is downloaded to your machine in the browser and run entirely locally - so no calls to the cloud - keeping costs to zero and your privacy is preserved.</p>
+      <p>Specifically the Google Gemma 2, 2B parameter model, is downloaded and executed powered by the MediaPipe Web LLM library.</p>
+    </div>
+
+    <div id="preloader" class="animate__animated animate__fadeIn">
+      <section class="animate__animated animate__pulse animate__infinite">
+        <h2 id="progress">Please wait: Loading 2.5GB Agent Web AI Model file.</h2>
+        <p>While you wait for this to finish, watch this 3 min video (click play and expand full screen) to see the demo in action so you know how to use it once it has downloaded!</p>
+        <iframe width="600" height="330" src="https://www.youtube.com/embed/VfTiE4IllzU?si=kfQQHAo_5QuHWTqh" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </section>
+    </div>
+    <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+    <script src="/script.js" type="module"></script>
+  </body>
+</html>
