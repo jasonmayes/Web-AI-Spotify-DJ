@@ -129,8 +129,7 @@ let SpotifyAPIHelper = function() {
       onPageLoad();
     }
     else {
-      console.log(this.responseText);
-      alert(this.responseText);
+      console.warn(this.responseText);
     }
   }
   
@@ -147,11 +146,10 @@ let SpotifyAPIHelper = function() {
       data.devices.forEach(item => addDevice(item));
     }
     else if ( this.status == 401 ){
-      refreshAccessToken()
+      refreshAccessToken();
     }
     else {
       console.log(this.responseText);
-      alert(this.responseText);
     }
   }
   
@@ -221,7 +219,6 @@ let SpotifyAPIHelper = function() {
     }
     else {
       console.log(this.responseText);
-      alert(this.responseText);
     }
   }
 
