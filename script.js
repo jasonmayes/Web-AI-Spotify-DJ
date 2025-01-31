@@ -1,7 +1,7 @@
 /********************************************************************* 
  * Spotify Web AI DJ designed and coded by Jason Mayes 2025. 
  *--------------------------------------------------------------------
- * Connect with me on social if aquestions or comments:
+ * Connect with me on social if any questions or comments:
  *
  * LinkedIn: https://www.linkedin.com/in/webai/
  * Twitter / X: https://x.com/jason_mayes
@@ -11,9 +11,8 @@
 
 import {KokoroTTS} from "https://cdn.jsdelivr.net/npm/kokoro-js@1.0.0/dist/kokoro.web.js";
 import {FilesetResolver, LlmInference} from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai';
-import spotifyAPIHelper from '/spotifyLib.js';
-import fetchInChunks from '/fetchInChunks.js';
-import MD5 from '/fetchInChunks.js';
+import SpotifyAPIHelper from '/spotifyAPIHelper.js';
+import FileProxyCache from 'https://cdn.jsdelivr.net/gh/jasonmayes/web-ai-model-proxy-cache@main/FileProxyCache.min.js';
 
 
 /**************************************************************
@@ -34,56 +33,9 @@ AUDIO_GENERATOR.addEventListener('ended', (event) => {
 });
 
 
-
-async function cacheIt(blob, fileUrl) {
-  try {
-    const MODEL_CACHE = await caches.open('models');
-    await MODEL_CACHE.put(MD5(fileUrl), new Response(blob));
-    return URL.createObjectURL(blob);
-  } catch (err) {
-    console.error(err.name, err.message);
-    return URL.createObjectURL(blob);
-  }
+function fileProgressCallback(textUpdate) {
+  PROGRESS.innerText = textUpdate;
 }
-
-
-async function fetchAndCacheFile(url, backupUrl) {
-  console.log('Fetch and caching: ' + url);
-  let blob = undefined;
-  try {
-    blob = await fetchInChunks(url, {
-      chunkSize: 5 * 1024 * 1024,
-      maxParallelRequests: 10,
-      progressCallback: (done, total) => (PROGRESS.innerText = 'Loading 2.5GB Agent Web AI Model file: ' + Math.round((done / total) * 100) + '%')
-    });
-    PROGRESS.innerText = 'Model downloaded. Intializing on GPU... Please wait.';
-    return cacheIt(blob, url);
-  } catch(e) {
-    // Try backup URL instead.
-    if(backupUrl) {
-      return fetchAndCacheFile(backupUrl);
-    }
-  }
-};
-
-
-async function fetchFile(url, backupUrl) {
-  console.log('Attempting to fetch: ' + url);
-  try {
-    const MODEL_CACHE = await caches.open('models');
-    const response = await MODEL_CACHE.match(MD5(url));
-    if (!response) {
-      console.warn('Requested file not in cache - fetching and caching.')
-      return await fetchAndCacheFile(url, backupUrl);
-    } else {
-      const file = await response.blob();
-      return await URL.createObjectURL(file);
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};
-
 
 
 /**************************************************************
@@ -137,7 +89,7 @@ function audioCompleteCallback() {
  * Spotify Player control / API code.
  **************************************************************/
 // Initialize the Spotify API Helper library.
-spotifyAPIHelper.init('devices');
+SpotifyAPIHelper.init('devices');
 
 let spotController = undefined;
 let generatedList = undefined;
@@ -148,7 +100,7 @@ let lastPlaybackUpdate = 0;
 
 let authBtn = document.getElementById('authBtn');
 authBtn.addEventListener('click', function() {
-  spotifyAPIHelper.requestAuth(document.getElementById('clientId').value, document.getElementById('clientSecret').value);
+  SpotifyAPIHelper.requestAuth(document.getElementById('clientId').value, document.getElementById('clientSecret').value);
 });
 
 
@@ -197,11 +149,11 @@ function spotifyCallback(EmbedController) {
 
 function playArtist(artistName) {
   playlistIndex++;
-  spotifyAPIHelper.callAPI('GET', 'https://api.spotify.com/v1/search?q='+ artistName + '&type=artist', null, function(data) {
+  SpotifyAPIHelper.callAPI('GET', 'https://api.spotify.com/v1/search?q='+ artistName + '&type=artist', null, function(data) {
     if ( this.status == 200 ) {
       var data = JSON.parse(this.responseText);
       console.log(data);
-      spotifyAPIHelper.callAPI('GET', 'https://api.spotify.com/v1/artists/' + data.artists.items[0].id + '/top-tracks', null, function(data) {
+      SpotifyAPIHelper.callAPI('GET', 'https://api.spotify.com/v1/artists/' + data.artists.items[0].id + '/top-tracks', null, function(data) {
         if ( this.status == 200 ) {
           var data = JSON.parse(this.responseText);
           console.log(data);
@@ -211,7 +163,7 @@ function playArtist(artistName) {
       });
     }
     else if ( this.status == 401 ){
-      spotifyAPIHelper.refreshAuth();
+      SpotifyAPIHelper.refreshAuth();
     }
     else {
       console.log(this.responseText);
@@ -235,7 +187,14 @@ let lastGeneratedResponse = '';
 let activePersona = '';
 
 async function initLLM(modelUrl) {
-  let dataUrl = await fetchFile(modelFileName, modelFileNameRemote);
+  // Attempt to load from cache or localhost.
+  let dataUrl = await FileProxyCache.loadFromURL(modelFileName, fileProgressCallback);
+  // If failed due to no local file stored, fetch cloud version instead from cache or remote.
+  if (dataUrl === null) {
+    dataUrl = await FileProxyCache.loadFromURL(modelFileNameRemote, fileProgressCallback);
+  }
+  PROGRESS.innerText = 'Model downloaded. Intializing on GPU... Please wait.';
+  
   const genaiFileset = await FilesetResolver.forGenAiTasks(
       'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai/wasm');
   
