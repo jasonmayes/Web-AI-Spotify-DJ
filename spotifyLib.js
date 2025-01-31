@@ -4,7 +4,7 @@
  * https://github.com/makeratplay/SpotifyWebAPI <3
  ******************************************************************/
 
-let spotifyAPIHelper = function() {
+let SpotifyAPIHelper = function() {
   const REDIRECT_URI = "https://spotify-web-ai-agent-dj.glitch.me/index.html"; // YOU NEED TO UPDATE THIS TO BE YOUR DOMAIN AND AUTH WITH YOUR OWN CREDENTIALS BELOW.
 
   const AUTHORIZE = "https://accounts.spotify.com/authorize"
@@ -239,4 +239,4 @@ let spotifyAPIHelper = function() {
   };
 }();
 
-export default spotifyAPIHelper;
+export default SpotifyAPIHelper;
