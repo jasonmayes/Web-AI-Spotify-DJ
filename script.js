@@ -9,7 +9,7 @@
  * CodePen: https://codepen.io/jasonmayes
  *********************************************************************/
 
-import {KokoroTTS} from "https://cdn.jsdelivr.net/npm/kokoro-js@1.0.0/dist/kokoro.web.js";
+import {KokoroTTS} from "https://cdn.jsdelivr.net/npm/kokoro-js@1.1.1/dist/kokoro.web.js";
 import {FilesetResolver, LlmInference} from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai';
 import SpotifyAPIHelper from '/spotifyAPIHelper.js';
 import FileProxyCache from 'https://cdn.jsdelivr.net/gh/jasonmayes/web-ai-model-proxy-cache@main/FileProxyCache.min.js';
@@ -28,9 +28,6 @@ const CHAT_BTN = document.getElementById('chatBtn');
 const ERASE_MEMORY_BTN = document.getElementById('eraseMemorytBtn');
 const TALK_TO_AGENT_BTN = document.getElementById('talkToAgent');
 const AUDIO_GENERATOR = document.getElementById('player');
-AUDIO_GENERATOR.addEventListener('ended', (event) => {
-  audioCompleteCallback();
-});
 
 
 function fileProgressCallback(textUpdate) {
@@ -41,45 +38,70 @@ function fileProgressCallback(textUpdate) {
 /**************************************************************
  * TTS Engine: Uses Kokoro or Browser Web Standards.
  **************************************************************/
-const USE_BROWSER_TTS = true;
-const AUDIO_MODEL_ID = "onnx-community/Kokoro-82M-ONNX";
+const USE_BROWSER_TTS = false;
+const AUDIO_MODEL_ID = "onnx-community/Kokoro-82M-v1.0-ONNX";
 
 let tts = undefined;
-let ttsCallback = undefined;
+let speaking = false;
 
 async function loadKokoro() {
   tts = await KokoroTTS.from_pretrained(AUDIO_MODEL_ID, {
-    dtype: "fp16", // Options: "fp32", "fp16", "q8", "q4", "q4f16"
+    device: 'webgpu',
+    dtype: "fp32", // Options: needs "fp32" for WebGPU.
   });
 }
 
 
-if(USE_BROWSER_TTS) {
-  loadKokoro();
+function speakSentence(text, audioTarget, voiceName) {
+  return new Promise(async function (resolve) {
+    const AUDIO = await tts.generate(text, {
+      // Use `tts.list_voices()` to list all available voices
+      voice: voiceName,
+    });
+    audioTarget.src = await URL.createObjectURL(AUDIO.toBlob());
+    audioTarget.load();
+    console.log('Speaking sub part: ' + text);
+    audioTarget.addEventListener('ended', function audioEndListener() {
+      audioTarget.removeEventListener('ended', audioEndListener);
+      resolve();
+    });
+  });
+}
+
+
+async function playMultiSentence(text, audioTarget, voiceName) {
+  if (!speaking) {
+    speaking = true;
+    return new Promise(async function (resolve) {
+      // Temporary marker for abbreviations.
+      const TEMP_MARKER = '__TEMP_JM_ABBR__';
+      // Step 1: Replace periods in abbreviations with a unique marker.
+      let tempText = text.replace(/\b[A-Za-z]{1,3}\.(?=\s)/g, match => match + TEMP_MARKER);
+      // Step 2: Split based on periods followed by space (end of sentence)
+      let sentenceArray = tempText.split('. ');
+      for (let n = 0; n < sentenceArray.length; n++) {
+        let noMarkerSentence = sentenceArray[n].replace(TEMP_MARKER, '');
+        await speakSentence(noMarkerSentence, audioTarget, voiceName);
+      }
+      speaking = false;
+      resolve();
+    });
+  }
 }
 
 
 async function speakText(text, callback) {
   console.log('Attempting to speak: ' + text);
-  ttsCallback = callback;
   if (USE_BROWSER_TTS) {
     let utterance = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(utterance);
-    audioCompleteCallback();
-  } else {
-    const AUDIO = await tts.generate(text, {
-      // Use `tts.list_voices()` to list all available voices
-      voice: "bm_george",
+    utterance.addEventListener('end', function() {
+      console.log("speech end");
+      callback ? callback() : false;
     });
-    AUDIO_GENERATOR.src = await URL.createObjectURL(AUDIO.toBlob());
-    AUDIO_GENERATOR.load();
-  }
-}
-
-
-function audioCompleteCallback() {
-  if(ttsCallback) {
-    ttsCallback();
+    speechSynthesis.speak(utterance);
+  } else {
+    await playMultiSentence(text, AUDIO_GENERATOR, "bm_george");
+    callback ? callback() : false;
   }
 }
 
@@ -130,11 +152,11 @@ function spotifyCallback(EmbedController) {
   spotController.addListener('playback_update', e => {
     lastPlaybackUpdate = 0;
     setTimeout(function() {
-      if (lastPlaybackUpdate > 4 && notJustLoaded) {
+      if (lastPlaybackUpdate > 4 && notJustLoaded && !speaking) {
         // Song ended or was paused by spotify auto play next.
         if (playlistIndex < generatedList.artists.length) {
           notJustLoaded = false;
-          // Announce the song.
+          // Announce the next song.
           speakText(generatedList.artists[playlistIndex].justification);
           // Play the next song.
           playArtist(generatedList.artists[playlistIndex].artist);
@@ -186,7 +208,11 @@ let llmInference = undefined;
 let lastGeneratedResponse = '';
 let activePersona = '';
 
-async function initLLM(modelUrl) {
+async function initAIModels() {
+  if(!USE_BROWSER_TTS) {
+    await loadKokoro();
+  }
+
   // Attempt to load from cache or localhost.
   let dataUrl = await FileProxyCache.loadFromURL(modelFileName, fileProgressCallback);
   // If failed due to no local file stored, fetch cloud version instead from cache or remote.
@@ -239,8 +265,8 @@ function executeAgent(task, personaName, personaHistory) {
 
 
 
-// Kick off LLM load right away.
-initLLM();
+// Kick off LLM and TTS load right away.
+initAIModels();
 
 
 
@@ -332,7 +358,6 @@ function displayPartialAgentResults(partialResults, complete) {
       generatedList = answerObj;
       playlistIndex = 0;
       speakText(generatedList.introduction, function() {
-        console.log('called');
         speakText(generatedList.artists[0].justification);
       });
 
