@@ -80,8 +80,11 @@ async function playMultiSentence(text, audioTarget, voiceName) {
       // Step 2: Split based on periods followed by space (end of sentence)
       let sentenceArray = tempText.split('. ');
       for (let n = 0; n < sentenceArray.length; n++) {
-        let noMarkerSentence = sentenceArray[n].replace(TEMP_MARKER, '');
-        await speakSentence(noMarkerSentence, audioTarget, voiceName);
+        let trimmedSentence = sentenceArray[n].trim();
+        if (trimmedSentence !== '') {
+          let noMarkerSentence = trimmedSentence.replace(TEMP_MARKER, '');
+          await speakSentence(noMarkerSentence, audioTarget, voiceName);
+        }
       }
       speaking = false;
       resolve();
@@ -95,10 +98,11 @@ async function speakText(text, callback) {
   if (USE_BROWSER_TTS) {
     let utterance = new SpeechSynthesisUtterance(text);
     utterance.addEventListener('end', function() {
-      console.log("speech end");
+      speaking = false;
       callback ? callback() : false;
     });
     speechSynthesis.speak(utterance);
+    speaking = true;
   } else {
     await playMultiSentence(text, AUDIO_GENERATOR, "bm_george");
     callback ? callback() : false;
