@@ -287,8 +287,9 @@ body.search #talkToAgent {
   color: #efefef;
 }
 
-#sidePanel a {
-  color: #aecbfa;
+#nerdyRenderPanel a, #sidePanel a {
+  color: #5aa374;
+  font-weight: bold;
 }
 
 #sidePanel h2 {
