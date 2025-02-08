@@ -28,6 +28,7 @@ const CHAT_BTN = document.getElementById('chatBtn');
 const ERASE_MEMORY_BTN = document.getElementById('eraseMemorytBtn');
 const TALK_TO_AGENT_BTN = document.getElementById('talkToAgent');
 const AUDIO_GENERATOR = document.getElementById('player');
+AUDIO_GENERATOR.volume = 1;
 
 
 function fileProgressCallback(textUpdate) {
