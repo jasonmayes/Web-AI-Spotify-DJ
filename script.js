@@ -162,9 +162,11 @@ function spotifyCallback(EmbedController) {
         if (playlistIndex < generatedList.artists.length) {
           notJustLoaded = false;
           // Announce the next song.
-          speakText(generatedList.artists[playlistIndex].justification);
-          // Play the next song.
-          playArtist(generatedList.artists[playlistIndex].artist);
+          speakText(generatedList.artists[playlistIndex].justification, function() {
+            // Play the next song.
+            playArtist(generatedList.artists[playlistIndex].artist);
+          });
+          
           // Debounce Spotify issue that generates multiple callbacks in succession in short time.
           setTimeout(function(){notJustLoaded = true;}, backoff);
         }
@@ -217,7 +219,6 @@ async function initAIModels() {
   if(!USE_BROWSER_TTS) {
     await loadKokoro();
   }
-
   // Attempt to load from cache or localhost.
   let dataUrl = await FileProxyCache.loadFromURL(modelFileName, fileProgressCallback);
   // If failed due to no local file stored, fetch cloud version instead from cache or remote.
@@ -246,7 +247,6 @@ async function initAIModels() {
   setTimeout(function() {
     PRELOADER.setAttribute('class', 'removed');
   }, 1000);
-
 }
 
 
@@ -267,7 +267,6 @@ function executeAgent(task, personaName, personaHistory) {
     console.warn('Can not process request as agent busy!');
   }
 }
-
 
 
 // Kick off LLM and TTS load right away.
@@ -363,10 +362,10 @@ function displayPartialAgentResults(partialResults, complete) {
       generatedList = answerObj;
       playlistIndex = 0;
       speakText(generatedList.introduction, function() {
-        speakText(generatedList.artists[0].justification);
+        speakText(generatedList.artists[0].justification, function() {
+          playArtist(generatedList.artists[playlistIndex].artist);
+        });
       });
-
-      playArtist(generatedList.artists[playlistIndex].artist);
       displaySearchResults(generatedList);
     } catch(e) {
       // LLM fail at valid JSON response. 
