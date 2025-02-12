@@ -124,6 +124,7 @@ let playlistIndex = 0;
 let backoff = 2000;
 let notJustLoaded = true;
 let lastPlaybackUpdate = 0;
+let agentPause = false;
 
 let authBtn = document.getElementById('authBtn');
 authBtn.addEventListener('click', function() {
@@ -157,10 +158,11 @@ function spotifyCallback(EmbedController) {
   spotController.addListener('playback_update', e => {
     lastPlaybackUpdate = 0;
     setTimeout(function() {
-      if (lastPlaybackUpdate > 4 && notJustLoaded && !speaking) {
+      if (lastPlaybackUpdate > 4 && notJustLoaded && !speaking && !agentPause) {
         // Song ended or was paused by spotify auto play next.
         if (playlistIndex < generatedList.artists.length) {
           notJustLoaded = false;
+          spotController.pause();
           // Announce the next song.
           speakText(generatedList.artists[playlistIndex].justification, function() {
             // Play the next song.
@@ -247,6 +249,7 @@ async function initAIModels() {
   setTimeout(function() {
     PRELOADER.setAttribute('class', 'removed');
   }, 1000);
+
 }
 
 
@@ -267,6 +270,7 @@ function executeAgent(task, personaName, personaHistory) {
     console.warn('Can not process request as agent busy!');
   }
 }
+
 
 
 // Kick off LLM and TTS load right away.
@@ -300,6 +304,7 @@ SPEECH_RECOGNITION.addEventListener("result", function(data) {
 });
 
 function speechDeactivated () {
+  agentPause = false;
   TALK_TO_AGENT_BTN.setAttribute('class', '');
   // Allow 1s grace for speech recognition to finish.
   setTimeout(function(){
@@ -309,6 +314,8 @@ function speechDeactivated () {
 
 TALK_TO_AGENT_BTN.addEventListener('mousedown', function() {
   this.setAttribute('class', 'activated');
+  agentPause = true;
+  spotController.pause();
   try {
     SPEECH_RECOGNITION.start();
   } catch(e) {
@@ -361,6 +368,7 @@ function displayPartialAgentResults(partialResults, complete) {
       console.log(answerObj);
       generatedList = answerObj;
       playlistIndex = 0;
+      spotController.pause();
       speakText(generatedList.introduction, function() {
         speakText(generatedList.artists[0].justification, function() {
           playArtist(generatedList.artists[playlistIndex].artist);
